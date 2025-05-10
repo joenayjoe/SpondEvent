@@ -186,8 +186,8 @@ Update Driver Class and JDBC URL values as shown in the screenshot above then cl
 
 #### Manual
 
-- Generate JAR file as mentioned in above stag
-- Create an environment on the cloud eg. AWS E2 Instance
+- Create an executeable JAR file as mentioned above
+- Create an environment on the cloud eg. AWS EC2 Instance
 - Install java on the environment
 - Upload the JAR file to the environment
 - Run java -jar jar_file_name.jar --server.port:=80
@@ -195,7 +195,7 @@ Update Driver Class and JDBC URL values as shown in the screenshot above then cl
 
 #### Using CI/CD pipelines
 
-- Setup any CI/CD tools such as Jenkins, Github Actions etc to automate the deployment process.
+- Setup any CI/CD tools such as Jenkins, Github Actions etc to automate the continous deployment process.
 
 ### Future developments
 
