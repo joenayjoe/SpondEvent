@@ -153,7 +153,7 @@ Update Driver Class and JDBC URL values as shown in the screenshot above then cl
 
 ### Deploying on Cloud
 
-#### Without Manual
+#### Manual
 
 - Generate JAR file as mentioned in above stag
 - Create an environment on the cloud eg. AWS E2 Instance
