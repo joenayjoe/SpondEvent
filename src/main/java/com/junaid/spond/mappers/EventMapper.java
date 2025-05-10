@@ -3,6 +3,7 @@ package com.junaid.spond.mappers;
 import com.junaid.spond.dtos.EventResponse;
 import com.junaid.spond.dtos.NewEventRequest;
 import com.junaid.spond.models.Event;
+import java.util.List;
 
 public class EventMapper {
   public static Event toEntity(NewEventRequest newEventRequest) {
@@ -28,5 +29,9 @@ public class EventMapper {
         .airTemperature(event.getAirTemperature())
         .windSpeed(event.getWindSpeed())
         .build();
+  }
+
+  public static List<EventResponse> toEventResponseList(List<Event> events) {
+    return events.stream().map(EventMapper::toEventResponse).toList();
   }
 }

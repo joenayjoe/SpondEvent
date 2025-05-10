@@ -72,6 +72,69 @@ This is a simple API that manages events. The api fetches weather forecasts for 
 - Event 2 and Event 3 are within 7 days
 - Event 4 is after 7 days
 
+### Viewing the event list
+
+- Using Postman or a browser, send a (GET) request to _http://localhost:8080/api/events_
+
+- Response
+
+```json
+{
+    "data": [
+        {
+            "id": 1,
+            "name": "Sampple Event 1",
+            "description": "Sample Event 1 Description",
+            "latitude": 59.91,
+            "longitude": 10.75,
+            "startDateTime": "2025-05-09T21:15:47.091898Z",
+            "endDateTime": "2025-05-09T19:15:47.091898Z",
+            "airTemperature": null,
+            "windSpeed": null
+        },
+        ...
+    ],
+    "currentPage": 0,
+    "totalPages": 1,
+    "totalItems": 4
+}
+```
+**Note**: The above endpoint returns paginated response. You can append **page** and **size** query parameter for customization.
+
+### Viewing an Event details
+
+If you have the id of an event, you can view the event details. If the event is within next 7days, forecast data will be fetched. Otherwise, they will be null.
+
+- Send a GET request to _localhost:8080/api/events/{id}_
+- A response similar to this will be returned
+
+```json
+{
+  "id": 2,
+  "name": "Sampple Event 2",
+  "description": "Sample Event 2 Description",
+  "latitude": 59.73,
+  "longitude": 10.9,
+  "startDateTime": "2025-05-11T12:34:44.300189Z",
+  "endDateTime": "2025-05-11T14:34:44.300189Z",
+  "airTemperature": 15.1,
+  "windSpeed": 3.3
+}
+```
+
+_NOTE_: a valid event id is required for fetching event details, othewise a 404 NOT_FOUND error will occur with following data:
+
+```json
+{
+  "title": "Resource Not Found",
+  "status": 404,
+  "message": "Event not found",
+  "httpMethod": "GET",
+  "path": "/api/events/5",
+  "occurredAt": "2025-05-09T14:49:14.667508"
+}
+```
+
 ### Creating new event
 
 - Using Postman or curl, new events can be created
@@ -106,38 +169,6 @@ This is a simple API that manages events. The api fetches weather forecasts for 
       }
     ]
   }
-}
-```
-
-### Viewing an Event details
-
-- Send a GET request to _localhost:8080/api/events/{id}_
-- A response similat to this will be returned
-
-```json
-{
-  "id": 2,
-  "name": "Sampple Event 2",
-  "description": "Sample Event 2 Description",
-  "latitude": 59.73,
-  "longitude": 10.9,
-  "startDateTime": "2025-05-11T12:34:44.300189Z",
-  "endDateTime": "2025-05-11T14:34:44.300189Z",
-  "airTemperature": 15.1,
-  "windSpeed": 3.3
-}
-```
-
-_NOTE_: a valid event id is required for fetching event details, othewise a 404 NOT_FOUND error will occur with following data:
-
-```json
-{
-  "title": "Resource Not Found",
-  "status": 404,
-  "message": "Event not found",
-  "httpMethod": "GET",
-  "path": "/api/events/5",
-  "occurredAt": "2025-05-09T14:49:14.667508"
 }
 ```
 

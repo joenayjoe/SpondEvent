@@ -3,6 +3,7 @@ package com.junaid.spond.services;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -13,6 +14,7 @@ import static org.mockito.Mockito.when;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.junaid.spond.dtos.EventResponse;
 import com.junaid.spond.dtos.NewEventRequest;
+import com.junaid.spond.dtos.PageableResponse;
 import com.junaid.spond.exceptions.ResourceNotFoundException;
 import com.junaid.spond.mappers.EventMapper;
 import com.junaid.spond.models.Event;
@@ -20,6 +22,8 @@ import com.junaid.spond.models.ForecastData;
 import com.junaid.spond.repositories.EventRepository;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +31,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 class EventServiceTest {
 
@@ -197,5 +204,66 @@ class EventServiceTest {
     verify(forecastService, times(1)).getForecastData(expiredEvent);
     verify(eventRepository, times(1)).save(expiredEvent);
     verify(forecastCache, times(1)).put(eventId.toString(), unExpiredEvent);
+  }
+
+  @Test
+  void testGetEvents_Success() {
+    // Arrange
+    int page = 0;
+    int size = 2;
+
+    Event event1 = Event.builder().id(1L).name("Event 1").build();
+    Event event2 = Event.builder().id(2L).name("Event 2").build();
+    List<Event> events = Arrays.asList(event1, event2);
+
+    Page<Event> eventPage = new PageImpl<>(events, PageRequest.of(page, size), events.size());
+    when(eventRepository.findAll(PageRequest.of(page, size))).thenReturn(eventPage);
+
+    List<EventResponse> eventResponses =
+        Arrays.asList(
+            EventResponse.builder().id(1L).name("Event 1").build(),
+            EventResponse.builder().id(2L).name("Event 2").build());
+
+    try (var mockedMapper = mockStatic(EventMapper.class)) {
+      mockedMapper.when(() -> EventMapper.toEventResponseList(events)).thenReturn(eventResponses);
+
+      // Act
+      PageableResponse<EventResponse> pageableResponse = eventService.getEvents(page, size);
+
+      // Assert
+      assertNotNull(pageableResponse);
+      assertEquals(2, pageableResponse.getData().size());
+      assertEquals(0, pageableResponse.getCurrentPage());
+      assertEquals(1, pageableResponse.getTotalPages());
+      assertEquals(2, pageableResponse.getTotalItems());
+
+      verify(eventRepository, times(1)).findAll(PageRequest.of(page, size));
+    }
+  }
+
+  @Test
+  void testGetEvents_EmptyPage() {
+    // Arrange
+    int page = 0;
+    int size = 2;
+
+    Page<Event> eventPage = new PageImpl<>(List.of(), PageRequest.of(page, size), 0);
+    when(eventRepository.findAll(PageRequest.of(page, size))).thenReturn(eventPage);
+
+    try (var mockedMapper = mockStatic(EventMapper.class)) {
+      mockedMapper.when(() -> EventMapper.toEventResponseList(List.of())).thenReturn(List.of());
+
+      // Act
+      PageableResponse<EventResponse> pageableResponse = eventService.getEvents(page, size);
+
+      // Assert
+      assertNotNull(pageableResponse);
+      assertTrue(pageableResponse.getData().isEmpty());
+      assertEquals(0, pageableResponse.getCurrentPage());
+      assertEquals(0, pageableResponse.getTotalPages());
+      assertEquals(0, pageableResponse.getTotalItems());
+
+      verify(eventRepository, times(1)).findAll(PageRequest.of(page, size));
+    }
   }
 }

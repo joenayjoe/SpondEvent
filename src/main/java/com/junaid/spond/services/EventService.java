@@ -3,6 +3,7 @@ package com.junaid.spond.services;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.junaid.spond.dtos.EventResponse;
 import com.junaid.spond.dtos.NewEventRequest;
+import com.junaid.spond.dtos.PageableResponse;
 import com.junaid.spond.exceptions.ResourceNotFoundException;
 import com.junaid.spond.mappers.EventMapper;
 import com.junaid.spond.models.Event;
@@ -12,6 +13,7 @@ import java.time.Duration;
 import java.time.Instant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -70,6 +72,18 @@ public class EventService {
 
     log.info("Event is not within 7 days. Doesn't need foreacst data for event with id : {} ", id);
     return EventMapper.toEventResponse(event);
+  }
+
+  public PageableResponse<EventResponse> getEvents(int page, int size) {
+    var pageable = PageRequest.of(page, size);
+    var eventPage = eventRepository.findAll(pageable);
+    var pageableResponse =
+        new PageableResponse<>(
+            EventMapper.toEventResponseList(eventPage.getContent()),
+            eventPage.getNumber(),
+            eventPage.getTotalPages(),
+            eventPage.getTotalElements());
+    return pageableResponse;
   }
 
   private boolean isEventInNext7Days(Event event) {

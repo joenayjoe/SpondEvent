@@ -12,8 +12,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.junaid.spond.dtos.EventResponse;
 import com.junaid.spond.dtos.NewEventRequest;
+import com.junaid.spond.dtos.PageableResponse;
 import com.junaid.spond.services.EventService;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
@@ -134,5 +137,68 @@ class EventControllerTest {
         .andExpect(jsonPath("$.windSpeed").value(3.0));
 
     verify(eventService, times(1)).getEventById(eventId);
+  }
+
+  @Test
+  void testGetEvents_Success() throws Exception {
+    // Arrange
+    int page = 0;
+    int size = 2;
+
+    List<EventResponse> eventResponses =
+        Arrays.asList(
+            EventResponse.builder().id(1L).name("Event 1").build(),
+            EventResponse.builder().id(2L).name("Event 2").build());
+
+    PageableResponse<EventResponse> pageableResponse =
+        new PageableResponse<>(eventResponses, page, 1, 2);
+
+    when(eventService.getEvents(page, size)).thenReturn(pageableResponse);
+
+    // Act & Assert
+    mockMvc
+        .perform(
+            get("/api/events")
+                .param("page", String.valueOf(page))
+                .param("size", String.valueOf(size))
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.length()").value(2))
+        .andExpect(jsonPath("$.data[0].id").value(1L))
+        .andExpect(jsonPath("$.data[0].name").value("Event 1"))
+        .andExpect(jsonPath("$.data[1].id").value(2L))
+        .andExpect(jsonPath("$.data[1].name").value("Event 2"))
+        .andExpect(jsonPath("$.currentPage").value(0))
+        .andExpect(jsonPath("$.totalPages").value(1))
+        .andExpect(jsonPath("$.totalItems").value(2));
+
+    verify(eventService, times(1)).getEvents(page, size);
+  }
+
+  @Test
+  void testGetEvents_EmptyPage() throws Exception {
+    // Arrange
+    int page = 0;
+    int size = 2;
+
+    PageableResponse<EventResponse> pageableResponse =
+        new PageableResponse<>(List.of(), page, 0, 0);
+
+    when(eventService.getEvents(page, size)).thenReturn(pageableResponse);
+
+    // Act & Assert
+    mockMvc
+        .perform(
+            get("/api/events")
+                .param("page", String.valueOf(page))
+                .param("size", String.valueOf(size))
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.length()").value(0))
+        .andExpect(jsonPath("$.currentPage").value(0))
+        .andExpect(jsonPath("$.totalPages").value(0))
+        .andExpect(jsonPath("$.totalItems").value(0));
+
+    verify(eventService, times(1)).getEvents(page, size);
   }
 }

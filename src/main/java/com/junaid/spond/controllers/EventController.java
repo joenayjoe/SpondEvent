@@ -2,6 +2,7 @@ package com.junaid.spond.controllers;
 
 import com.junaid.spond.dtos.EventResponse;
 import com.junaid.spond.dtos.NewEventRequest;
+import com.junaid.spond.dtos.PageableResponse;
 import com.junaid.spond.services.EventService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -30,5 +32,11 @@ public class EventController {
   public ResponseEntity<EventResponse> getEventById(@PathVariable Long id) {
     var eventResponse = eventService.getEventById(id);
     return ResponseEntity.ok(eventResponse);
+  }
+
+  @GetMapping()
+  public ResponseEntity<PageableResponse<EventResponse>> getEvents(
+      @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+    return ResponseEntity.ok(eventService.getEvents(page, size));
   }
 }
